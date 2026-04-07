@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:semantic_search_ui/features/auth/presentation/pages/login_page.dart'; // Import đúng path
 
 void main() {
   runApp(const MyApp());
@@ -10,11 +11,8 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Semantic Search UI',
-      theme: ThemeData(primarySwatch: Colors.blue),
-      home: const Scaffold(
-        body: Center(child: Text('Login Page Coming Soon')),
-      ),
+      debugShowCheckedModeBanner: false,
+      home: const LoginPage(),
     );
   }
 }
