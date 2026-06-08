@@ -7,7 +7,7 @@ class UserModel {
   final String? phone;
   final bool enabled;
   final DateTime createdAt;
-  final List<String> roles; // Lấy danh sách tên Role
+  final List<String> roles;
 
   UserModel({
     required this.id,

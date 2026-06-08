@@ -1,20 +1,22 @@
 import 'dart:convert';
-
 import 'package:dio/dio.dart';
-import 'package:http/http.dart' as http;
-
 import '../../../../data/models/user_model.dart';
+import '../../../../config/app_config.dart';
+
 // lib/features/auth/data/datasource/auth_remote_data_source.dart
 
 class AuthRemoteDataSource {
   final Dio _dio = Dio();
 
-  final String _baseUrl = "http://localhost:8080/api/v1/auth";
+  // Lấy baseUrl từ AppConfig để dễ bảo trì
+  final String _authUrl = "${AppConfig.baseUrl}/api/v1/auth";
+  final String _userUrl = "${AppConfig.baseUrl}/api/v1/user";
 
+  // 1. ĐĂNG NHẬP
   Future<Map<String, dynamic>> login(String email, String password) async {
     try {
       final response = await _dio.post(
-        "$_baseUrl/login",
+        "$_authUrl/login",
         data: {
           "email": email,
           "password": password,
@@ -23,32 +25,33 @@ class AuthRemoteDataSource {
       );
       return response.data;
     } on DioException catch (e) {
-
-      print("Mã lỗi HTTP: ${e.response?.statusCode}");
-      print("Chi tiết lỗi: ${e.response?.data}");
-      throw Exception(e.response?.data['message'] ?? "Lỗi kết nối");
+      throw Exception(e.response?.data['message'] ?? "Lỗi kết nối server");
     }
   }
-  Future<Map<String, dynamic>> register(String fullName, String email, String password) async {
+
+  // 2. ĐĂNG KÝ (Đã fix 4 tham số khớp với UI mới của Hùng)
+  Future<bool> register(String email, String password, String name, String phone) async {
     try {
       final response = await _dio.post(
-        "$_baseUrl/register",
+        "$_authUrl/register",
         data: {
           "email": email,
           "password": password,
-          "fullName": fullName,
+          "fullName": name,
+          "phoneNumber": phone, // Khớp với @JsonProperty("phoneNumber") bên Java
         },
       );
-      return response.data;
+      return response.statusCode == 200 || response.statusCode == 201;
     } on DioException catch (e) {
-      throw Exception(e.response?.data['message'] ?? "Lỗi đăng ký");
+      throw Exception(e.response?.data['message'] ?? "Lỗi đăng ký tài khoản");
     }
   }
 
+  // 3. QUÊN MẬT KHẨU (Gửi mã OTP)
   Future<String> forgotPassword(String email) async {
     try {
       final response = await _dio.post(
-        "$_baseUrl/forgot-password",
+        "$_authUrl/forgot-password",
         data: {"email": email},
         options: Options(responseType: ResponseType.plain),
       );
@@ -58,38 +61,53 @@ class AuthRemoteDataSource {
     }
   }
 
-  Future<String> resetPassword(String email, String code, String newPassword) async {
+  // 4. RESET MẬT KHẨU (Xác nhận mã OTP và đặt pass mới)
+  Future<String> resetPassword(String email, String newPassword, String code) async {
     try {
       final response = await _dio.post(
-        "$_baseUrl/reset-password",
+        "$_authUrl/reset-password",
         data: {
           "email": email,
-          "code": code,
           "newPassword": newPassword,
+          "code": code,
         },
+        options: Options(responseType: ResponseType.plain),
       );
-      return response.data;
+      return response.data.toString();
     } on DioException catch (e) {
-      throw Exception(e.response?.data ?? "Mã xác nhận không chính xác");
+      // Ép kiểu lỗi từ JSON nếu backend trả về Object, hoặc lấy text nếu trả về String
+      String errorMsg = "Mã xác nhận không chính xác";
+      if (e.response?.data is Map) {
+        errorMsg = e.response?.data['message'] ?? errorMsg;
+      }
+      throw Exception(errorMsg);
     }
   }
 
+  // 5. CẬP NHẬT PROFILE (Đã chuyển từ http sang Dio)
   Future<UserModel> updateProfile(String token, Map<String, dynamic> updateData) async {
-    final response = await http.put(
-      Uri.parse('$_baseUrl/api/v1/user/update_profile'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-      },
-      body: jsonEncode(updateData),
-    );
+    try {
+      final response = await _dio.put(
+        "$_userUrl/update_profile",
+        data: updateData,
+        options: Options(
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $token',
+          },
+        ),
+      );
 
-    if (response.statusCode == 200) {
-      return UserModel.fromJson(jsonDecode(utf8.decode(response.bodyBytes)));
-    } else if (response.statusCode == 403) {
-      throw Exception('Bạn không có quyền thực hiện hành động này (403)');
-    } else {
-      throw Exception('Lỗi server: ${response.statusCode}');
+      if (response.statusCode == 200) {
+        return UserModel.fromJson(response.data);
+      } else {
+        throw Exception('Lỗi server: ${response.statusCode}');
+      }
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 403) {
+        throw Exception('Bạn không có quyền thực hiện hành động này (403)');
+      }
+      throw Exception(e.response?.data['message'] ?? "Lỗi cập nhật thông tin");
     }
   }
 }

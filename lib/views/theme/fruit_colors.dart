@@ -7,4 +7,9 @@ class FruitColors {
   static const Color softGreen = Color(0xFF97C459);
   static const Color background = Color(0xFFF4F7F0);
   static const Color cardBg = Colors.white;
+  static const TextStyle topBarTitle = TextStyle(
+    fontSize: 18,
+    fontWeight: FontWeight.bold,
+    color: primaryGreen,
+  );
 }
