@@ -409,6 +409,26 @@ class _LoginPageState extends State<LoginPage> {
 
                         const SizedBox(height: 30),
                         _buildLoginButton(),
+                        const SizedBox(height: 16),
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: TextButton(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => const ForgotPasswordPage()),
+                              );
+                            },
+                            child: Text(
+                              "Quên mật khẩu?",
+                              style: TextStyle(
+                                color: primaryPurple,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ),
+                        ),
 
                         const SizedBox(height: 40),
                         Center(

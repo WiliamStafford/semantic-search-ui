@@ -47,6 +47,7 @@ class SharedSidebar extends StatelessWidget {
               children: [
                 if (currentSpace == "CUSTOMER") ..._buildCustomerMenu(),
                 if (currentSpace == "SELLER") ..._buildSellerMenu(),
+                if (currentSpace == "ADMIN") ..._buildAdminMenu(),
               ],
             ),
           ),
@@ -236,4 +237,31 @@ class SharedSidebar extends StatelessWidget {
           label: Text(title, style: const TextStyle(fontSize: 12)),
         ),
       );
+
+  List<Widget> _buildAdminMenu() => [
+    _buildMenuItem(
+      icon: Icons.dashboard_customize_rounded,
+      title: "Dashboard",
+      isActive: activeRoute == "admin-dashboard",
+      onTap: () => onSpaceChanged("ADMIN", "admin-dashboard"),
+    ),
+    _buildMenuItem(
+      icon: Icons.storefront_sharp,
+      title: "Duyệt Seller",
+      isActive: activeRoute == "admin-sellers",
+      onTap: () => onSpaceChanged("ADMIN", "admin-sellers"),
+    ),
+    _buildMenuItem(
+      icon: Icons.analytics_outlined,
+      title: "Doanh thu Seller",
+      isActive: activeRoute == "admin-revenue",
+      onTap: () => onSpaceChanged("ADMIN", "admin-revenue"),
+    ),
+    const SizedBox(height: 20),
+    _buildSpaceButton(
+      "Quay lại Mua sắm",
+      Icons.arrow_back,
+          () => onSpaceChanged("CUSTOMER", "home"),
+    ),
+  ];
 }

@@ -2,7 +2,8 @@
 import 'package:flutter/material.dart';
 import '../theme/fruit_colors.dart';
 import '../widgets/SharedSidebar.dart';
-
+import 'AdminSellerApprovalScreen.dart';
+import 'AdminRevenueScreen.dart';
 import 'FruitHomeScreen.dart';
 import 'CartScreen.dart';
 import 'OrderHistoryScreen.dart';
@@ -17,7 +18,7 @@ import 'SellerReturnScreen.dart';
 import 'SemanticSearchScreen.dart';
 import 'WishListScreen.dart';
 
-// import 'AdminDashboardScreen.dart';
+import 'AdminDashboardScreen.dart';
 
 class MainLayoutScreen extends StatefulWidget {
   final bool isSellerMode;
@@ -106,9 +107,26 @@ class _MainLayoutScreenState extends State<MainLayoutScreen> {
       }
     } else if (_currentSpace == "ADMIN") {
       switch (_activeRoute) {
-        // case "admin-dashboard": return AdminDashboardScreen(...);
+        case "admin-dashboard":
+          return AdminDashboardScreen(
+            key: const ValueKey("admin-db"),
+            accessToken: widget.accessToken,
+          );
+        case "admin-sellers":
+          return AdminSellerApprovalScreen(
+            key: const ValueKey("admin-sellers"),
+            accessToken: widget.accessToken,
+          );
+        case "admin-revenue":
+          return AdminRevenueScreen(
+            key: const ValueKey("admin-revenue"),
+            accessToken: widget.accessToken,
+          );
         default:
-          return const Center(child: Text("Admin Console: Đang phát triển..."));
+          return AdminDashboardScreen(
+            key: const ValueKey("admin-db"),
+            accessToken: widget.accessToken,
+          );
       }
     } else {
       switch (_activeRoute) {

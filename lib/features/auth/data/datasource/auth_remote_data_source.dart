@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:dio/dio.dart';
+import 'package:flutter/cupertino.dart';
 import '../../../../data/models/user_model.dart';
 import '../../../../config/app_config.dart';
 
@@ -62,21 +63,23 @@ class AuthRemoteDataSource {
   }
 
   // 4. RESET MẬT KHẨU (Xác nhận mã OTP và đặt pass mới)
-  Future<String> resetPassword(String email, String newPassword, String code) async {
+  // 4. RESET MẬT KHẨU (Sửa lại thứ tự tham số cho khớp với UI)
+  Future<String> resetPassword(String email, String code, String newPassword) async {
     try {
       final response = await _dio.post(
         "$_authUrl/reset-password",
         data: {
           "email": email,
-          "newPassword": newPassword,
           "code": code,
+          "newPassword": newPassword,
         },
         options: Options(responseType: ResponseType.plain),
       );
       return response.data.toString();
     } on DioException catch (e) {
-      // Ép kiểu lỗi từ JSON nếu backend trả về Object, hoặc lấy text nếu trả về String
       String errorMsg = "Mã xác nhận không chính xác";
+      debugPrint("Lỗi từ server: ${e.response?.data}");
+
       if (e.response?.data is Map) {
         errorMsg = e.response?.data['message'] ?? errorMsg;
       }
