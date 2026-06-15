@@ -44,15 +44,12 @@ class _ChatScreenState extends State<ChatScreen> {
   void initState() {
     super.initState();
 
-    // 1. Tải lịch sử tin nhắn trước
     _loadHistory();
-    // 2. Khởi tạo và kết nối WebSocket
     _chatService = ChatWebSocketService(
       conversationId: widget.conversationId.toString(),
       onMessageReceived: (msg) {
         if (!mounted) return;
         setState(() {
-          // Kiểm tra tránh trùng tin nhắn bằng cách so sánh ID nếu có
           if (!_messages.any((m) => m['id'] == msg['id'])) {
             _messages.add(msg);
           }
@@ -88,6 +85,7 @@ class _ChatScreenState extends State<ChatScreen> {
         ).showSnackBar(SnackBar(content: Text("Lỗi upload: $e")));
     }
   }
+
 
   void _sendCustomMessage(String content, {String type = 'text'}) {
     if (content.trim().isEmpty) return;
@@ -250,7 +248,7 @@ class _ChatScreenState extends State<ChatScreen> {
                               const SizedBox(height: 4),
                               Text(
                                 widget.product['description'] ??
-                                    "Chưa có mô tả.",
+                                    "thông tin ở trang chi tiết sản phẩm",
                                 style: const TextStyle(
                                   fontSize: 13,
                                   color: Colors.black54,
@@ -261,7 +259,7 @@ class _ChatScreenState extends State<ChatScreen> {
                               const Divider(height: 32),
 
                               Text(
-                                widget.isSellerMode ?  "Người bán:":"Khách hàng:" ,
+                                widget.isSellerMode ?  "Người bán:":"Người bán:" ,
                                 style: const TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 13,
@@ -277,14 +275,6 @@ class _ChatScreenState extends State<ChatScreen> {
                                 ),
                               ),
                               const SizedBox(height: 2),
-                              Text(
-                                widget.product['sellerEmail'] ??
-                                    "Chưa có email",
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey.shade700,
-                                ),
-                              ),
                               const SizedBox(height: 16),
                             ],
                           ),

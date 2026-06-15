@@ -6,6 +6,7 @@ class CartItem {
   final String productName;
   final double price;
   final String imageUrl;
+  final int sellerId;
 
   CartItem({
     required this.id,
@@ -14,6 +15,7 @@ class CartItem {
     required this.productName,
     required this.price,
     required this.imageUrl,
+    required this.sellerId
   });
 
   factory CartItem.fromJson(Map<String, dynamic> json) {
@@ -24,8 +26,10 @@ class CartItem {
       productName: json['productName'] ?? 'Sản phẩm không có tên',
       price: (json['price'] as num?)?.toDouble() ?? 0.0,
       imageUrl: json['imageUrl'] ?? json['avatar'] ?? '',
+      sellerId: json['sellerId'] ?? 3,
     );
   }
+
 }
 
 class CartResponse {

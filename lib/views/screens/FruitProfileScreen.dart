@@ -22,6 +22,11 @@ class _FruitProfileScreenState extends State<FruitProfileScreen> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _ageController = TextEditingController();
+  final TextEditingController _provinceController = TextEditingController();
+  final TextEditingController _districtController = TextEditingController();
+  final TextEditingController _wardController = TextEditingController();
+  final TextEditingController _streetController = TextEditingController();
+  final TextEditingController _houseController = TextEditingController();
 
   @override
   void initState() {
@@ -35,6 +40,11 @@ class _FruitProfileScreenState extends State<FruitProfileScreen> {
     _nameController.dispose();
     _phoneController.dispose();
     _ageController.dispose();
+    _provinceController.dispose();
+    _districtController.dispose();
+    _wardController.dispose();
+    _streetController.dispose();
+    _houseController.dispose();
     super.dispose();
   }
 
@@ -43,18 +53,24 @@ class _FruitProfileScreenState extends State<FruitProfileScreen> {
       _userProfile = UserRemoteDataSource().getUserProfile(widget.accessToken);
     });
 
-    _userProfile
-        .then((user) {
-          _nameController.text = user.fullName;
-          _phoneController.text = user.phone ?? "";
-          _ageController.text = user.age?.toString() ?? "";
-        })
-        .catchError((error) => debugPrint("Lỗi tải profile: $error"));
+    _userProfile.then((user) {
+      _nameController.text = user.fullName;
+      _phoneController.text = user.phone ?? "";
+      _ageController.text = user.age?.toString() ?? "";
+
+      _provinceController.text = user.province ?? "";
+      _districtController.text = user.district ?? "";
+      _wardController.text = user.ward ?? "";
+      _streetController.text = user.street ?? "";
+      _houseController.text = user.houseNumber ?? "";
+    }).catchError((error) => debugPrint("Lỗi tải profile: $error"));
   }
 
   Future<void> _loadSellerStatus() async {
     try {
-      final status = await UserRemoteDataSource().getSellerRegistrationStatus(widget.accessToken);
+      final status = await UserRemoteDataSource().getSellerRegistrationStatus(
+        widget.accessToken,
+      );
       if (mounted) setState(() => _sellerStatus = status);
     } catch (e) {
       debugPrint("Lỗi: $e");
@@ -268,6 +284,11 @@ class _FruitProfileScreenState extends State<FruitProfileScreen> {
         "fullName": _nameController.text.trim(),
         "phone": _phoneController.text.trim(),
         "age": int.tryParse(_ageController.text.trim()),
+        "province": _provinceController.text.trim(),
+        "district": _districtController.text.trim(),
+        "ward": _wardController.text.trim(),
+        "street": _streetController.text.trim(),
+        "houseNumber": _houseController.text.trim(),
         "avatar": null,
       };
       await UserRemoteDataSource().updateProfile(
@@ -388,10 +409,12 @@ class _FruitProfileScreenState extends State<FruitProfileScreen> {
               ),
               const SizedBox(height: 16),
               Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  alignment: WrapAlignment.center,
-                  children: user.roles.map((role) => _buildRoleBadge(role)).toList()
+                spacing: 8,
+                runSpacing: 8,
+                alignment: WrapAlignment.center,
+                children: user.roles
+                    .map((role) => _buildRoleBadge(role))
+                    .toList(),
               ),
               const SizedBox(height: 20),
               _buildSellerAction(),
@@ -455,6 +478,36 @@ class _FruitProfileScreenState extends State<FruitProfileScreen> {
                   controller: _ageController,
                   icon: Icons.cake_outlined,
                   isNumberOnly: true,
+                ),
+                _infoRow(
+                  "Tỉnh/Thành",
+                  user.province ?? "",
+                  controller: _provinceController,
+                  icon: Icons.map_outlined,
+                ),
+                // _infoRow(
+                //   "Quận/Huyện",
+                //   user.district ?? "",
+                //   controller: _districtController,
+                //   icon: Icons.location_city_outlined,
+                // ),
+                _infoRow(
+                  "Phường/Xã",
+                  user.ward ?? "",
+                  controller: _wardController,
+                  icon: Icons.home_work_outlined,
+                ),
+                _infoRow(
+                  "Đường",
+                  user.street ?? "",
+                  controller: _streetController,
+                  icon: Icons.signpost_outlined,
+                ),
+                _infoRow(
+                  "Số nhà",
+                  user.houseNumber ?? "",
+                  controller: _houseController,
+                  icon: Icons.home_outlined,
                 ),
                 _infoRow(
                   "Ngày gia nhập",

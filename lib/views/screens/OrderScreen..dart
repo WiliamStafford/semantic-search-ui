@@ -25,15 +25,81 @@ class OrderScreen extends StatefulWidget {
   State<OrderScreen> createState() => _OrderScreenState();
 }
 
+
 class _OrderScreenState extends State<OrderScreen> {
+  final TextEditingController _provinceController = TextEditingController();
+  final TextEditingController _districtController = TextEditingController();
+  final TextEditingController _wardController = TextEditingController();
+  final TextEditingController _streetController = TextEditingController();
+  final TextEditingController _houseController = TextEditingController();
   final _addressController = TextEditingController();
-  String _paymentMethod = "COD"; // Các giá trị hợp lệ: COD, VNPAY, PAYPAL
+  String _paymentMethod = "COD";
   bool _isProcessing = false;
 
+  @override
+  void initState() {
+    super.initState();
+    _loadUserAddress();
+  }
+  @override
+  void dispose() {
+    _addressController.dispose();
+    _provinceController.dispose();
+    _districtController.dispose();
+    _wardController.dispose();
+    _streetController.dispose();
+    _houseController.dispose();
+    super.dispose();
+  }
+  Widget _buildAddressField(String label, TextEditingController controller, IconData icon) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Row(
+        children: [
+          Icon(icon, size: 20, color: FruitColors.primaryGreen.withOpacity(0.6)),
+          const SizedBox(width: 16),
+          SizedBox(
+            width: 100,
+            child: Text(label, style: TextStyle(color: Colors.grey[600], fontSize: 14)),
+          ),
+          Expanded(
+            child: TextField(
+              controller: controller,
+              decoration: const InputDecoration(
+                isDense: true,
+                contentPadding: EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                border: OutlineInputBorder(),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+  Future<void> _loadUserAddress() async {
+    try {
+      final user = await UserRemoteDataSource().getUserProfile(widget.accessToken);
+      if (mounted) {
+        setState(() {
+          _provinceController.text = user.province ?? "";
+          _districtController.text = user.district ?? "";
+          _wardController.text = user.ward ?? "";
+          _streetController.text = user.street ?? "";
+          _houseController.text = user.houseNumber ?? "";
+        });
+      }
+    } catch (e) {
+      debugPrint("Lỗi: $e");
+    }
+  }
+
   Future<void> _handlePlaceOrder() async {
-    if (_addressController.text.trim().isEmpty) {
+    if (_provinceController.text.trim().isEmpty ||
+        _wardController.text.trim().isEmpty ||
+        _streetController.text.trim().isEmpty ||
+        _houseController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Vui lòng nhập địa chỉ giao hàng!"), backgroundColor: Colors.orange),
+        const SnackBar(content: Text("Vui lòng điền đầy đủ thông tin địa chỉ!"), backgroundColor: Colors.orange),
       );
       return;
     }
@@ -43,7 +109,6 @@ class _OrderScreenState extends State<OrderScreen> {
     try {
       final user = await UserRemoteDataSource().getUserProfile(widget.accessToken);
 
-      // Gọi API đặt hàng
       final orderResponse = await http.post(
         Uri.parse('https://napping-squash-majorette.ngrok-free.dev/api/v1/orders/buy-now'),
         headers: {
@@ -51,22 +116,48 @@ class _OrderScreenState extends State<OrderScreen> {
           'Authorization': 'Bearer ${widget.accessToken}',
           'ngrok-skip-browser-warning': 'any',
         },
+        // body: jsonEncode({
+        //   "userId": user.id,
+        //   "sellerId": widget.selectedItems.first.sellerId,
+        //   "paymentMethod": _paymentMethod,
+        //   "totalPrice": widget.totalAmount,
+        //   "items": widget.selectedItems.map((item) => {
+        //     "sellerProductId": item.sellerProductId,
+        //     "quantity": item.quantity,
+        //     "price": item.price
+        //   }).toList(),
+        //   "newAddress": {
+        //     "province": _provinceController.text.trim(),
+        //     "district": "",
+        //     "ward": _wardController.text.trim(),
+        //     "street": _streetController.text.trim(),
+        //     "houseNumber": _houseController.text.trim(),
+        //   }
+        // }),
         body: jsonEncode({
           "userId": user.id,
-          "shippingAddress": _addressController.text.trim(),
+          "paymentMethod": _paymentMethod,
           "totalPrice": widget.totalAmount,
           "items": widget.selectedItems.map((item) => {
             "sellerProductId": item.sellerProductId,
             "quantity": item.quantity,
             "price": item.price
           }).toList(),
+          "newAddress": {
+            "province": _provinceController.text.trim(),
+            "district": _districtController.text.trim(),
+            "ward": _wardController.text.trim(),
+            "street": _streetController.text.trim(),
+            "houseNumber": _houseController.text.trim(),
+          }
         }),
       );
 
-      // 🌟 KIỂM TRA STATUS CODE ĐỂ TRÁNH LỖI FORMATEXCEPTION (SYNTAX ERROR)
       if (orderResponse.statusCode == 200 || orderResponse.statusCode == 201) {
-        final orderData = jsonDecode(utf8.decode(orderResponse.bodyBytes));
-        final int orderId = orderData['id'];
+        final dynamic responseBody = jsonDecode(utf8.decode(orderResponse.bodyBytes));
+        final orderData = (responseBody is List) ? responseBody.first : responseBody;
+        final dynamic rawId = orderData['id'];
+        final int orderId = (rawId is int) ? rawId : int.tryParse(rawId.toString()) ?? 0;
         final double totalPrice = (orderData['totalPrice'] as num).toDouble();
 
         if (_paymentMethod == "COD") {
@@ -123,7 +214,7 @@ class _OrderScreenState extends State<OrderScreen> {
   void _showWaitingPaymentDialog() {
     showDialog(
       context: context,
-      barrierDismissible: false, // Ép người dùng phải bấm nút xác nhận, không bấm lệch ra ngoài để tắt được
+      barrierDismissible: false, //
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: const Row(
@@ -189,7 +280,6 @@ class _OrderScreenState extends State<OrderScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // 🌟 FIXED: Đã lột bỏ Row bọc thanh SharedSidebar lồng cũ để đưa về dạng nội dung độc lập phẳng hoàn toàn
     return Scaffold(
       backgroundColor: FruitColors.background,
       appBar: AppBar(
@@ -217,26 +307,26 @@ class _OrderScreenState extends State<OrderScreen> {
       children: [
         Container(
           padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: FruitColors.softGreen.withOpacity(0.3)),
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text("Địa chỉ nhận hàng", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: FruitColors.primaryGreen)),
-              const SizedBox(height: 16),
-              TextField(
-                controller: _addressController,
-                maxLines: 3,
-                decoration: const InputDecoration(
-                  hintText: "Nhập địa chỉ giao hàng chi tiết...",
-                  border: OutlineInputBorder(),
-                  fillColor: Color(0xFFF9FBF7),
-                  filled: true,
-                ),
-              ),
+              const Text("Địa chỉ nhận hàng",
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: FruitColors.primaryGreen)),
+              const SizedBox(height: 24),
+              _buildAddressField("Tỉnh/Thành", _provinceController, Icons.map_outlined),
+              _buildAddressField("Phường/Xã", _wardController, Icons.home_work_outlined),
+              _buildAddressField("Đường", _streetController, Icons.signpost_outlined),
+              _buildAddressField("Số nhà", _houseController, Icons.home_outlined),
             ],
           ),
         ),
         const SizedBox(height: 24),
+        // PHẦN THANH TOÁN (GIỮ NGUYÊN)
         Container(
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
@@ -284,7 +374,6 @@ class _OrderScreenState extends State<OrderScreen> {
           const Divider(height: 32),
 
           ...widget.selectedItems.map((item) {
-            // 🌟 Tinh chỉnh: Kiểm tra cả null và rỗng để tránh lỗi icon
             final bool hasImage = item.imageUrl.isNotEmpty;
 
             return Padding(

@@ -293,7 +293,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             // 1. Thêm vào giỏ hàng trước
             await _handleAddToCart();
 
-            // 2. Sau đó mới chuyển trang như bình thường
             double price = (product['price'] as num?)?.toDouble() ?? 0.0;
             CartItem tempItem = CartItem(
               id: 0,
@@ -302,9 +301,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               price: price,
               imageUrl: product['avatar'] ?? '',
               quantity: quantity,
+              sellerId: (product['sellerId'] as num?)?.toInt() ?? 0,
             );
 
-            if (mounted) { // Kiểm tra để an toàn khi dùng async
+            if (mounted) {
               Navigator.push(
                 context,
                 MaterialPageRoute(

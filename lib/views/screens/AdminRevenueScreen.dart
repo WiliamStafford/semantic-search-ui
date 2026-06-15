@@ -44,7 +44,7 @@ class _AdminRevenueScreenState extends State<AdminRevenueScreen> {
           // Bố cục căn giữa màn hình cho Dashboard chuyên nghiệp
           return Center(
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 900), // Giới hạn chiều rộng
+              constraints: const BoxConstraints(maxWidth: 900),
               child: ListView(
                 padding: const EdgeInsets.all(24),
                 children: [

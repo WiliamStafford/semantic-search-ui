@@ -162,7 +162,7 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
                                         0.0,
                                     'description':
                                         conv['description']?.toString() ??
-                                        "Chưa có mô tả",
+                                        "thông tin ở trang chi tiết sản phẩm",
                                     'sellerName':
                                         conv['sellerName']?.toString() ??
                                         "Người bán",
