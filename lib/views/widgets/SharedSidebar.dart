@@ -146,6 +146,12 @@ class SharedSidebar extends StatelessWidget {
       isActive: activeRoute == "seller-chat",
       onTap: () => onSpaceChanged("SELLER", "seller-chat"),
     ),
+    _buildMenuItem(
+      icon: Icons.bar_chart_rounded,
+      title: "Thống kê doanh thu",
+      isActive: activeRoute == "seller-stats",
+      onTap: () => onSpaceChanged("SELLER", "seller-stats"),
+    ),
     const SizedBox(height: 20),
     _buildSpaceButton(
       "Quay lại Mua sắm",

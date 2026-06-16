@@ -6,6 +6,7 @@ class ProductModel {
   final double price;
   final double averageRating;
   final bool isFavorite;
+  final int stock;
 
   ProductModel({
     required this.id,
@@ -15,12 +16,13 @@ class ProductModel {
     required this.price,
     this.averageRating = 0.0,
     this.isFavorite = false,
+    required this.stock,
   });
 
   factory ProductModel.fromJson(Map<String, dynamic> json) {
     return ProductModel(
       sellerProductId: json['sellerProductId'] ?? 0,
-
+      stock: json['stock'] ?? 0,
       productName: json['productName'] ?? '',
       avatar: json['avatar'],
       price: (json['price'] as num? ?? 0.0).toDouble(),

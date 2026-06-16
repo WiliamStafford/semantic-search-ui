@@ -511,7 +511,7 @@ class _FruitProfileScreenState extends State<FruitProfileScreen> {
                 ),
                 _infoRow(
                   "Ngày gia nhập",
-                  DateFormat('dd/MM/yyyy').format(user.createdAt),
+                  DateFormat('dd/MM/yyyy').format(user.createdAt ?? DateTime.now()),
                   icon: Icons.calendar_today_outlined,
                   canEdit: false,
                 ),

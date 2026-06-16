@@ -1,54 +1,14 @@
-// class UserModel {
-//   final int id;
-//   final String email;
-//   final String fullName;
-//   final String? avatar;
-//   final int? age;
-//   final String? phone;
-//   final bool enabled;
-//   final DateTime createdAt;
-//   final List<String> roles;
-//
-//   UserModel({
-//     required this.id,
-//     required this.email,
-//     required this.fullName,
-//     this.avatar,
-//     this.age,
-//     this.phone,
-//     required this.enabled,
-//     required this.createdAt,
-//     required this.roles,
-//   });
-//
-//   factory UserModel.fromJson(Map<String, dynamic> json) {
-//     return UserModel(
-//       id: json['id'],
-//       email: json['email'],
-//       fullName: json['fullName'] ?? 'Chưa cập nhật',
-//       avatar: json['avatar'],
-//       age: json['age'],
-//       phone: json['phone'] ?? 'Chưa có SĐT',
-//       enabled: json['enabled'] ?? true,
-//       createdAt: DateTime.parse(json['createdAt']),
-//       roles: (json['roles'] as List?)
-//           ?.map((role) => role['name'].toString())
-//           .toList() ?? [],
-//     );
-//   }
-// }
 class UserModel {
   final int id;
   final String email;
   final String fullName;
-  final String? avatar;
-  final int? age;
   final String? phone;
-  final bool enabled;
-  final DateTime createdAt;
+  final int? age;
+  final String? avatar;
   final List<String> roles;
+  final DateTime? createdAt;
+  final bool enabled;
 
-  // Thêm 5 trường địa chỉ
   final String? province;
   final String? district;
   final String? ward;
@@ -59,13 +19,12 @@ class UserModel {
     required this.id,
     required this.email,
     required this.fullName,
-    this.avatar,
-    this.age,
     this.phone,
-    required this.enabled,
-    required this.createdAt,
+    this.age,
+    this.avatar,
     required this.roles,
-    // Cập nhật constructor
+    required this.enabled,
+    this.createdAt,
     this.province,
     this.district,
     this.ward,
@@ -73,24 +32,40 @@ class UserModel {
     this.houseNumber,
   });
 
+  // factory UserModel.fromJson(Map<String, dynamic> json) {
+  //   return UserModel(
+  //     id: json['id'] as int? ?? 0,
+  //     email: json['email'] as String? ?? '',
+  //     fullName: json['fullName'] as String? ?? '',
+  //     phone: json['phone'] as String?,
+  //     age: json['age'] as int?,
+  //     avatar: json['avatar'] as String?,
+  //     roles: (json['roles'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [],
+  //     createdAt: json['createdAt'] != null ? DateTime.tryParse(json['createdAt'].toString()) : null,
+  //
+  //     province: json['province']?.toString() ?? '',
+  //     district: json['district']?.toString() ?? '',
+  //     ward: json['ward']?.toString() ?? '',
+  //     street: json['street']?.toString() ?? '',
+  //     houseNumber: json['houseNumber']?.toString() ?? '',
+  //   );
+  // }
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
-      id: json['id'],
-      email: json['email'],
-      fullName: json['fullName'] ?? 'Chưa cập nhật',
-      avatar: json['avatar'],
-      age: json['age'],
-      phone: json['phone'],
-      enabled: json['enabled'] ?? true,
-      createdAt: DateTime.parse(json['createdAt']),
-      roles: (json['roles'] as List?)
-          ?.map((role) => role['name'].toString())
-          .toList() ?? [],
-      province: json['province'],
-      district: json['district'],
-      ward: json['ward'],
-      street: json['street'],
-      houseNumber: json['houseNumber'],
+      id: (json['id'] as num?)?.toInt() ?? 0,
+      email: json['email']?.toString() ?? '',
+      fullName: json['fullName']?.toString() ?? '',
+      phone: json['phone']?.toString() ?? '',
+      age: (json['age'] as num?)?.toInt(),
+      enabled: json['enabled'] as bool? ?? false,
+      roles: (json['roles'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [],
+      createdAt: json['createdAt'] != null ? DateTime.tryParse(json['createdAt'].toString()) : null,
+
+      province: json['province']?.toString() ?? '',
+      district: json['district']?.toString() ?? '',
+      ward: json['ward']?.toString() ?? '',
+      street: json['street']?.toString() ?? '',
+      houseNumber: json['houseNumber']?.toString() ?? '',
     );
   }
 }

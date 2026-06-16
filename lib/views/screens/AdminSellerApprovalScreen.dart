@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../data/datasource/user_remote_data_source.dart';
 import '../../data/models/seller_registration_model.dart';
+import '../../widgets/custom_admin_app_bar.dart';
 import '../../widgets/seller_request_card.dart';
 
 class AdminSellerApprovalScreen extends StatefulWidget {
@@ -49,7 +50,7 @@ class _AdminSellerApprovalScreenState extends State<AdminSellerApprovalScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Duyệt đăng ký Seller")),
+      appBar: const CustomAdminAppBar(title: "Duyệt đăng ký Seller"),
       body: FutureBuilder<List<SellerRegistration>>(
         future: _sellersFuture,
         builder: (context, snapshot) {

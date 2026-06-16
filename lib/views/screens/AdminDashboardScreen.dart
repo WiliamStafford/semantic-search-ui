@@ -3,6 +3,8 @@ import '../../data/datasource/user_remote_data_source.dart';
 import '../../data/models/user_model.dart';
 import '../../data/models/seller_registration_model.dart';
 import '../../widgets/custom_admin_app_bar.dart';
+import '../../widgets/user_tile.dart';
+import '../widgets/product_list_for_shop.dart';
 
 class AdminDashboardScreen extends StatefulWidget {
   final String accessToken;
@@ -41,11 +43,28 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     }
   }
 
-  Future<void> _blockUser(int id) async {
+  // Hàm xử lý khóa/mở khóa đã được gộp lại duy nhất 1 hàm
+  Future<void> _blockUser(int id, bool currentStatus) async {
     try {
-      await _dataSource.blockUser(widget.accessToken, id);
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Đã khóa tài khoản thành công")));
-      _loadData(); // Tải lại danh sách
+      bool? confirm = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text(currentStatus ? "Khóa tài khoản" : "Mở khóa tài khoản"),
+          content: Text("Bạn có chắc chắn muốn ${currentStatus ? 'khóa' : 'mở khóa'} tài khoản này?"),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text("Hủy")),
+            ElevatedButton(onPressed: () => Navigator.pop(ctx, true), child: const Text("Đồng ý")),
+          ],
+        ),
+      );
+
+      if (confirm == true) {
+        await _dataSource.blockUser(widget.accessToken, id, !currentStatus);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Thao tác thành công")));
+          _loadData();
+        }
+      }
     } catch (e) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Lỗi: $e")));
     }
@@ -55,7 +74,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     try {
       await _dataSource.closeShop(widget.accessToken, id);
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Đã đóng shop thành công")));
-      _loadData(); // Tải lại danh sách
+      _loadData();
     } catch (e) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Lỗi: $e")));
     }
@@ -106,22 +125,10 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     return ListView.builder(
       itemCount: _users.length,
       itemBuilder: (context, index) {
-        final u = _users[index];
-        return ExpansionTile(
-          leading: const Icon(Icons.person),
-          title: Text(u.fullName, style: const TextStyle(fontWeight: FontWeight.bold)),
-          subtitle: Text(u.email),
-          children: [
-            ListTile(title: Text("Điện thoại: ${u.phone ?? 'N/A'}")),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.red.shade50, foregroundColor: Colors.red),
-                onPressed: () => _blockUser(u.id),
-                child: const Text("Khóa tài khoản"),
-              ),
-            ),
-          ],
+        return UserTile(
+          user: _users[index],
+          onUpdate: _handleUpdateUser,
+          onBlock: (id) => _blockUser(id, _users[index].enabled),
         );
       },
     );
@@ -132,18 +139,20 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
       itemCount: _shops.length,
       itemBuilder: (context, index) {
         final s = _shops[index];
+        print("Shop: ${s.shopName}, ID: ${s.id}, UserID: ${s.userId}");
         return ExpansionTile(
-          leading: const Icon(Icons.store),
+          leading: const Icon(Icons.store, color: Colors.orange),
           title: Text(s.shopName, style: const TextStyle(fontWeight: FontWeight.bold)),
           subtitle: Text(s.address),
           children: [
-            ListTile(title: Text("Mô tả: ${s.description ?? 'Không có mô tả'}")),
+            ProductListForShop(accessToken: widget.accessToken, sellerId: s.id),
             Padding(
               padding: const EdgeInsets.all(8.0),
-              child: ElevatedButton(
+              child: ElevatedButton.icon(
+                icon: const Icon(Icons.close),
+                label: const Text("Đóng Shop"),
                 style: ElevatedButton.styleFrom(backgroundColor: Colors.red.shade50, foregroundColor: Colors.red),
                 onPressed: () => _closeShop(s.id),
-                child: const Text("Đóng Shop"),
               ),
             ),
           ],
@@ -158,5 +167,36 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
 
   Widget _buildManagementSection(String title, IconData icon, Widget list) {
     return Card(elevation: 0, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: BorderSide(color: Colors.grey.shade300)), child: Column(children: [Padding(padding: const EdgeInsets.all(16), child: Row(children: [Icon(icon), const SizedBox(width: 8), Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16))])), const Divider(height: 1), Expanded(child: list)]));
+  }
+
+  Future<void> _handleUpdateUser(
+      int userId, String name, String phone, String province, String district, String ward, String street, String house
+      ) async {
+    try {
+      final updateData = {
+        "fullName": name,
+        "phone": phone,
+        "province": province,
+        "district": district,
+        "ward": ward,
+        "street": street,
+        "houseNumber": house
+      };
+
+      await _dataSource.updateUserByAdmin(widget.accessToken, userId, updateData);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Cập nhật thông tin thành công!"), backgroundColor: Colors.green),
+        );
+        _loadData();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Lỗi cập nhật: $e"), backgroundColor: Colors.red),
+        );
+      }
+    }
   }
 }

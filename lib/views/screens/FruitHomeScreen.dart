@@ -10,6 +10,7 @@ import '../../data/models/user_model.dart';
 import '../../data/datasource/user_remote_data_source.dart';
 import '../../views/screens/product_detail_screen.dart';
 import '../../data/datasource/cart_remote_data_source.dart';
+import '../widgets/product_list_for_shop.dart';
 
 class FruitHomeScreen extends StatefulWidget {
   final String accessToken;
@@ -90,7 +91,7 @@ class _FruitHomeScreenState extends State<FruitHomeScreen> {
         productName: item['productName'] ?? 'Nông sản an toàn',
         price: (item['price'] is num) ? (item['price'] as num).toDouble() : 0.0,
         avatar: item['avatar'],
-        isFavorite: false,
+        isFavorite: false,stock: item['stock'] ?? 0,
       )).toList();
     } else {
       throw Exception('Không thể kết nối máy chủ tìm kiếm AI');

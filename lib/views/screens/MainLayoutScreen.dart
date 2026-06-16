@@ -17,6 +17,7 @@ import 'SellerProductsScreen.dart';
 import 'SellerReturnScreen.dart';
 import 'SemanticSearchScreen.dart';
 import 'WishListScreen.dart';
+import 'SellerReportScreen.dart';
 
 import 'AdminDashboardScreen.dart';
 
@@ -57,7 +58,7 @@ class _MainLayoutScreenState extends State<MainLayoutScreen> {
 
           Expanded(
             child: Container(
-              color: FruitColors.background, // Màu nền trang chủ
+              color: FruitColors.background,
               child: AnimatedSwitcher(
                 duration: const Duration(milliseconds: 200),
                 child: _buildBody(),
@@ -92,6 +93,10 @@ class _MainLayoutScreenState extends State<MainLayoutScreen> {
           return SellerReturnScreen(
             key: const ValueKey("seller-ret"),
             accessToken: widget.accessToken,
+          );
+        case "seller-stats":
+          return SellerReportScreen(
+            token: widget.accessToken,
           );
         case "seller-chat":
           return ConversationListScreen(

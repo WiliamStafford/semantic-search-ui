@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:developer' as dev;
 import 'package:http/http.dart' as http;
+import '../../config/app_config.dart';
+import '../models/product_model.dart';
 import '../models/seller_registration_model.dart';
 import '../models/user_model.dart';
 
@@ -179,16 +181,33 @@ class UserRemoteDataSource {
   // --- THÊM VÀO UserRemoteDataSource ---
 
   // Lấy toàn bộ User
+  // Trong user_remote_data_source.dart
   Future<List<UserModel>> getAllUsers(String token) async {
     final response = await http.get(
-      Uri.parse('$baseUrl/admin/users'), // Chỉnh sửa endpoint cho đúng với API backend của bạn
+      Uri.parse('$baseUrl/A_User/list?role=ROLE_CUSTOMER'),
       headers: {'Authorization': 'Bearer $token'},
     );
+
     if (response.statusCode == 200) {
-      List<dynamic> body = jsonDecode(utf8.decode(response.bodyBytes));
-      return body.map((item) => UserModel.fromJson(item)).toList();
+      try {
+        final List<dynamic> body = json.decode(utf8.decode(response.bodyBytes));
+        print("Dữ liệu thô từ API: $body");
+
+        return body.map((json) {
+          try {
+            return UserModel.fromJson(json);
+          } catch (e) {
+            print("Lỗi map tại user: $json | Lỗi: $e");
+            rethrow;
+          }
+        }).toList();
+      } catch (e) {
+        print("Lỗi decode JSON: $e");
+        rethrow;
+      }
+    } else {
+      throw Exception("Không thể tải danh sách user (Status: ${response.statusCode})");
     }
-    throw Exception("Không thể tải danh sách User");
   }
 
   // Lấy toàn bộ Shop
@@ -205,9 +224,9 @@ class UserRemoteDataSource {
   }
 
   // Khóa User
-  Future<void> blockUser(String token, int userId) async {
-    final response = await http.post(
-      Uri.parse('$baseUrl/admin/users/$userId/block'),
+  Future<void> blockUser(String token, int userId, bool status) async {
+    final response = await http.patch( // Dùng PATCH cho việc thay đổi trạng thái
+      Uri.parse('$baseUrl/A_User/buyers/$userId/status?enabled=$status'),
       headers: {'Authorization': 'Bearer $token'},
     );
     if (response.statusCode != 200) throw Exception("Lỗi khóa User");
@@ -220,5 +239,49 @@ class UserRemoteDataSource {
       headers: {'Authorization': 'Bearer $token'},
     );
     if (response.statusCode != 200) throw Exception("Lỗi đóng Shop");
+  }
+  Future<List<ProductModel>> getProductsBySeller(String token, int sellerId) async {
+    final uri = Uri.parse('$baseUrl/products/seller/$sellerId/active');
+
+    final response = await http.get(
+      uri,
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      List<dynamic> body = jsonDecode(utf8.decode(response.bodyBytes));
+      return body.map((item) => ProductModel.fromJson(item)).toList();
+    } else {
+      throw Exception("Lỗi khi tải sản phẩm của seller: ${response.statusCode}");
+    }
+  }
+  Future<void> updateUserByAdmin(String token, int userId, Map<String, dynamic> data) async {
+    final uri = Uri.parse('${AppConfig.baseUrl}/api/v1/admin/users/$userId');
+    final response = await http.put(
+      uri,
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: json.encode(data),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception("Lỗi ${response.statusCode}: ${response.body}");
+    }
+  }
+
+  Future<void> deleteSellerProduct(String token, int productId) async {
+    final response = await http.delete(
+      Uri.parse('$baseUrl/products/seller/delete/$productId'),
+      headers: {'Authorization': 'Bearer $token'},
+    );
+
+    if (response.statusCode != 200 && response.statusCode != 204) {
+      throw Exception("Xóa sản phẩm thất bại: ${response.body}");
+    }
   }
 }
