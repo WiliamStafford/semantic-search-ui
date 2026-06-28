@@ -4,8 +4,10 @@ import '../theme/fruit_colors.dart';
 import '../widgets/SharedSidebar.dart';
 import 'AdminSellerApprovalScreen.dart';
 import 'AdminRevenueScreen.dart';
+import 'AdminShopManagementScreen.dart';
 import 'FruitHomeScreen.dart';
 import 'CartScreen.dart';
+import 'ManageShopProductsScreen.dart';
 import 'OrderHistoryScreen.dart';
 import 'PaymentHistoryScreen.dart';
 import 'ReturnHistoryScreen.dart';
@@ -34,6 +36,7 @@ class MainLayoutScreen extends StatefulWidget {
 class _MainLayoutScreenState extends State<MainLayoutScreen> {
   String _currentSpace = "CUSTOMER";
   String _activeRoute = "home";
+  Widget? _adminDetailContent;
 
   @override
   Widget build(BuildContext context) {
@@ -111,11 +114,27 @@ class _MainLayoutScreenState extends State<MainLayoutScreen> {
           );
       }
     } else if (_currentSpace == "ADMIN") {
+      if (_adminDetailContent != null) return _adminDetailContent!;
       switch (_activeRoute) {
         case "admin-dashboard":
           return AdminDashboardScreen(
             key: const ValueKey("admin-db"),
             accessToken: widget.accessToken,
+          );
+        case "admin-shops":
+          return AdminShopManagementScreen(
+            key: const ValueKey("admin-shops"),
+            accessToken: widget.accessToken,
+            onShopSelected: (sellerId, shopName) {
+              setState(() {
+                _adminDetailContent = ManageShopProductsScreen(
+                  accessToken: widget.accessToken,
+                  sellerId: sellerId,
+                  shopName: shopName,
+                  onBack: () => setState(() => _adminDetailContent = null),
+                );
+              });
+            },
           );
         case "admin-sellers":
           return AdminSellerApprovalScreen(

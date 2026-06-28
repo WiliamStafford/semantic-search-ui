@@ -136,26 +136,35 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
 
   Widget _buildShopList() {
     return ListView.builder(
+      padding: const EdgeInsets.all(8),
       itemCount: _shops.length,
       itemBuilder: (context, index) {
         final s = _shops[index];
-        print("Shop: ${s.shopName}, ID: ${s.id}, UserID: ${s.userId}");
-        return ExpansionTile(
-          leading: const Icon(Icons.store, color: Colors.orange),
-          title: Text(s.shopName, style: const TextStyle(fontWeight: FontWeight.bold)),
-          subtitle: Text(s.address),
-          children: [
-            ProductListForShop(accessToken: widget.accessToken, sellerId: s.id),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: ElevatedButton.icon(
-                icon: const Icon(Icons.close),
-                label: const Text("Đóng Shop"),
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.red.shade50, foregroundColor: Colors.red),
-                onPressed: () => _closeShop(s.id),
-              ),
+        return Card(
+          margin: const EdgeInsets.only(bottom: 8),
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+            side: BorderSide(color: Colors.grey.shade200),
+          ),
+          child: ListTile(
+            leading: const Icon(Icons.store, color: Colors.orange),
+            title: Text(
+                s.shopName,
+                style: const TextStyle(fontWeight: FontWeight.bold)
             ),
-          ],
+            subtitle: Text(s.address),
+            trailing: ElevatedButton.icon(
+              icon: const Icon(Icons.close, size: 16),
+              label: const Text("Đóng Shop"),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red.shade50,
+                foregroundColor: Colors.red,
+                elevation: 0,
+              ),
+              onPressed: () => _closeShop(s.id),
+            ),
+          ),
         );
       },
     );

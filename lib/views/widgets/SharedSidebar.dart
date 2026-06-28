@@ -252,6 +252,12 @@ class SharedSidebar extends StatelessWidget {
       onTap: () => onSpaceChanged("ADMIN", "admin-dashboard"),
     ),
     _buildMenuItem(
+      icon: Icons.store_mall_directory_rounded,
+      title: "Quản lý Shop",
+      isActive: activeRoute == "admin-shops",
+      onTap: () => onSpaceChanged("ADMIN", "admin-shops"),
+    ),
+    _buildMenuItem(
       icon: Icons.storefront_sharp,
       title: "Duyệt Seller",
       isActive: activeRoute == "admin-sellers",
